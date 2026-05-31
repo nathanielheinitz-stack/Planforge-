@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PlanForge AI — Free Business Plan Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#0a0a0f; --surface:#13131a; --surface2:#1c1c27; --border:#2a2a3a;
+  --accent:#f5c842; --accent2:#e8834a; --text:#f0f0f8; --muted:#7a7a9a;
+  --green:#4ade80; --red:#f87171; --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* Background */
+.bg-grid{position:fixed;inset:0;z-index:0;
+  background-image:linear-gradient(rgba(245,200,66,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(245,200,66,.03) 1px,transparent 1px);
+  background-size:60px 60px;pointer-events:none;}
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(90px);opacity:.1;}
+.orb1{width:500px;height:500px;background:var(--accent);top:-150px;right:-150px;}
+.orb2{width:400px;height:400px;background:var(--accent2);bottom:-100px;left:-100px;}
+
+/* Layout */
+.app{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:30px 20px 80px;}
+
+/* Header */
+header{text-align:center;padding:50px 0 52px;}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(245,200,66,.1);
+  border:1px solid rgba(245,200,66,.3);border-radius:100px;padding:6px 18px;
+  font-size:12px;font-weight:600;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:26px;}
+.dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+h1{font-family:'Playfair Display',serif;font-size:clamp(38px,6vw,66px);font-weight:900;
+  line-height:1.05;letter-spacing:-1px;
+  background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.subtitle{color:var(--muted);font-size:17px;margin-top:16px;font-weight:300;line-height:1.65;}
+.stats{display:flex;justify-content:center;gap:48px;margin-top:36px;flex-wrap:wrap;}
+.stat-num{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--accent);}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:3px;}
+
+/* Step bar */
+.steps{display:flex;align-items:center;justify-content:center;margin-bottom:38px;}
+.si{display:flex;flex-direction:column;align-items:center;}
+.sc{width:38px;height:38px;border-radius:50%;border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:600;color:var(--muted);background:var(--surface);transition:all .3s;}
+.si.active .sc{border-color:var(--accent);color:var(--accent);background:rgba(245,200,66,.1);}
+.si.done .sc{border-color:var(--green);background:rgba(74,222,128,.1);color:var(--green);}
+.sl-txt{font-size:11px;color:var(--muted);margin-top:7px;white-space:nowrap;}
+.si.active .sl-txt{color:var(--accent);}
+.step-line{width:64px;height:2px;background:var(--border);margin:0 6px 24px;transition:background .3s;}
+.step-line.done{background:var(--green);}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:34px;margin-bottom:20px;display:none;animation:fadeIn .4s ease;}
+.card.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.card-title{font-family:'Playfair Display',serif;font-size:23px;font-weight:700;margin-bottom:6px;}
+.card-sub{color:var(--muted);font-size:14px;margin-bottom:30px;}
+
+/* Form */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.f{display:flex;flex-direction:column;gap:8px;}
+.f.full{grid-column:1/-1;}
+label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;}
+input,textarea,select{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  border-radius:10px;padding:13px 16px;font-family:'DM Sans',sans-serif;
+  font-size:15px;transition:border-color .2s;outline:none;width:100%;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+textarea{resize:vertical;min-height:110px;}
+select option{background:var(--surface2);}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:10px;}
+.chip{padding:8px 17px;border-radius:100px;border:1px solid var(--border);
+  background:var(--surface2);font-size:13px;cursor:pointer;
+  transition:all .2s;font-weight:500;color:var(--muted);}
+.chip:hover{border-color:var(--accent);color:var(--accent);}
+.chip.sel{background:rgba(245,200,66,.12);border-color:var(--accent);color:var(--accent);}
+
+/* Buttons */
+.brow{display:flex;gap:14px;justify-content:flex-end;margin-top:30px;}
+.btn{padding:13px 28px;border-radius:10px;font-family:'DM Sans',sans-serif;
+  font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;
+  border:none;display:inline-flex;align-items:center;gap:8px;}
+.btn-p{background:var(--accent);color:#0a0a0f;}
+.btn-p:hover{background:#f7d060;transform:translateY(-1px);box-shadow:0 6px 24px rgba(245,200,66,.3);}
+.btn-s{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-s:hover{border-color:var(--accent);color:var(--accent);}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;}
+
+/* Loading */
+.lp{text-align:center;padding:64px 20px;}
+.spinner{width:58px;height:58px;border:3px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 26px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lt{font-family:'Playfair Display',serif;font-size:23px;margin-bottom:12px;}
+.ls{color:var(--muted);font-size:14px;}
+.ls-item{padding:7px 0;transition:color .4s;}
+.ls-item.lit{color:var(--green);}
+
+/* Result */
+.res-head{background:linear-gradient(135deg,rgba(245,200,66,.08),rgba(232,131,74,.08));
+  border:1px solid rgba(245,200,66,.2);border-radius:var(--radius);
+  padding:28px 32px;margin-bottom:26px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;}
+.res-badge{font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1.1px;font-weight:600;margin-bottom:7px;}
+.res-title{font-family:'Playfair Display',serif;font-size:27px;font-weight:900;}
+.res-tag{color:var(--muted);font-size:14px;margin-top:5px;}
+.score-ring{width:82px;height:82px;flex-shrink:0;border-radius:50%;border:4px solid var(--accent);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(245,200,66,.08);}
+.score-n{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--accent);line-height:1;}
+.score-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+
+/* Section tabs */
+.tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:18px;}
+.tab{padding:8px 15px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;
+  border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .2s;}
+.tab.active{background:rgba(245,200,66,.12);border-color:var(--accent);color:var(--accent);}
+
+/* Plan content */
+.psec{display:none;}
+.psec.active{display:block;animation:fadeIn .3s ease;}
+.pc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:28px;line-height:1.8;}
+.pc h3{font-family:'Playfair Display',serif;font-size:18px;color:var(--accent);margin:22px 0 10px;}
+.pc h3:first-child{margin-top:0;}
+.pc p{margin-bottom:14px;color:#c8c8e0;}
+.pc ul,.pc ol{padding-left:22px;margin-bottom:14px;}
+.pc li{margin-bottom:8px;color:#c8c8e0;}
+.pc strong{color:var(--text);}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin:18px 0;}
+.metric-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;}
+.metric-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--accent);}
+.metric-lbl{font-size:12px;color:var(--muted);margin-top:4px;}
+
+/* Action bar */
+.abar{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px;padding-top:22px;border-top:1px solid var(--border);}
+
+/* Error */
+.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;
+  padding:14px 18px;color:var(--red);font-size:14px;margin-top:16px;display:none;}
+
+/* Footer */
+footer{text-align:center;padding:48px 20px 10px;color:var(--muted);font-size:13px;}
+footer span{color:var(--accent);font-weight:600;}
+
+@media(max-width:620px){
+  .fg{grid-template-columns:1fr;} .f.full{grid-column:1;}
+  .stats{gap:28px;} .step-line{width:34px;}
+  .res-head{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="badge"><span class="dot"></span> AI-Powered · Free Forever</div>
+    <h1>PlanForge AI</h1>
+    <p class="subtitle">Turn your idea into a complete, investor-ready business plan in under 60 seconds.<br>No sign-up. No cost. No fluff.</p>
+    <div class="stats">
+      <div><div class="stat-num">12K+</div><div class="stat-lbl">Plans Created</div></div>
+      <div><div class="stat-num">8</div><div class="stat-lbl">Sections Covered</div></div>
+      <div><div class="stat-num">$0</div><div class="stat-lbl">Cost to You</div></div>
+    </div>
+  </header>
+
+  <!-- STEP BAR -->
+  <div class="steps">
+    <div class="si active" id="si1"><div class="sc">1</div><div class="sl-txt">Your Idea</div></div>
+    <div class="step-line" id="sline1"></div>
+    <div class="si" id="si2"><div class="sc">2</div><div class="sl-txt">Details</div></div>
+    <div class="step-line" id="sline2"></div>
+    <div class="si" id="si3"><div class="sc">3</div><div class="sl-txt">Your Plan</div></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="card active" id="step1">
+    <div class="card-title">What's your business idea?</div>
+    <div class="card-sub">Give us the spark — we'll build the roadmap.</div>
+    <div class="fg">
+      <div class="f full">
+        <label>Describe your idea *</label>
+        <textarea id="idea" placeholder="e.g. A subscription box for rare houseplants targeting millennials in urban apartments — delivered monthly with care guides and exclusive cultivars..."></textarea>
+      </div>
+      <div class="f">
+        <label>Industry</label>
+        <select id="industry">
+          <option value="">Select industry...</option>
+          <option>E-commerce & Retail</option>
+          <option>SaaS / Software</option>
+          <option>Food & Beverage</option>
+          <option>Health & Wellness</option>
+          <option>Education & Training</option>
+          <option>Professional Services</option>
+          <option>Creative & Media</option>
+          <option>Real Estate</option>
+          <option>Finance & Fintech</option>
+          <option>Manufacturing</option>
+          <option>Travel & Hospitality</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Business Model</label>
+        <select id="bmodel">
+          <option value="">Select model...</option>
+          <option>Subscription / SaaS</option>
+          <option>One-time purchase</option>
+          <option>Marketplace / Platform</option>
+          <option>Service / Agency</option>
+          <option>Freemium</option>
+          <option>Advertising</option>
+          <option>Franchise</option>
+          <option>Consulting</option>
+        </select>
+      </div>
+      <div class="f full">
+        <label>Target Audience</label>
+        <input id="audience" type="text" placeholder="e.g. Urban professionals aged 25–40 who care about sustainability and home decor"/>
+      </div>
+    </div>
+    <div class="brow"><button class="btn btn-p" onclick="goStep2()">Next: Add Details →</button></div>
+    <div class="err" id="err1">Please describe your idea to continue.</div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card" id="step2">
+    <div class="card-title">Tell us more about your vision</div>
+    <div class="card-sub">The more context you provide, the sharper and more actionable your plan will be.</div>
+    <div class="fg">
+      <div class="f">
+        <label>Startup Budget</label>
+        <select id="budget">
+          <option>Under $1,000</option>
+          <option>$1,000 – $10,000</option>
+          <option>$10,000 – $50,000</option>
+          <option>$50,000 – $250,000</option>
+          <option>$250,000+</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Timeline to Launch</label>
+        <select id="timeline">
+          <option>ASAP (1–3 months)</option>
+          <option>3–6 months</option>
+          <option>6–12 months</option>
+          <option>1–2 years</option>
+        </select>
+      </div>
+      <div class="f full">
+        <label>Main Competitors (optional)</label>
+        <input id="competitors" type="text" placeholder="e.g. Amazon, Etsy, local plant shops, Bloomscape..."/>
+      </div>
+      <div class="f full">
+        <label>Your Unique Advantage</label>
+        <input id="advantage" type="text" placeholder="e.g. Direct relationships with 50+ rare cultivar farms, cutting costs 40% vs competitors..."/>
+      </div>
+      <div class="f full">
+        <label>Primary Year-1 Goals</label>
+        <div class="chips" id="goals-chips">
+          <div class="chip sel" onclick="toggleChip(this)">Revenue Growth</div>
+          <div class="chip" onclick="toggleChip(this)">User Acquisition</div>
+          <div class="chip" onclick="toggleChip(this)">Brand Awareness</div>
+          <div class="chip" onclick="toggleChip(this)">Product-Market Fit</div>
+          <div class="chip" onclick="toggleChip(this)">Raise Funding</div>
+          <div class="chip" onclick="toggleChip(this)">Break Even</div>
+          <div class="chip" onclick="toggleChip(this)">Geographic Expansion</div>
+          <div class="chip" onclick="toggleChip(this)">Hire a Team</div>
+        </div>
+      </div>
+      <div class="f full">
+        <label>Plan Style</label>
+        <div class="chips">
+          <div class="chip sel" id="sty-investor" onclick="selectStyle('investor',this)">🏦 Investor-Ready</div>
+          <div class="chip" id="sty-lean" onclick="selectStyle('lean',this)">⚡ Lean Startup</div>
+          <div class="chip" id="sty-detailed" onclick="selectStyle('detailed',this)">📋 Comprehensive</div>
+        </div>
+      </div>
+    </div>
+    <div class="brow">
+      <button class="btn btn-s" onclick="goStep1()">← Back</button>
+      <button class="btn btn-p" onclick="generatePlan()">🚀 Generate My Business Plan</button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="card" id="stepLoading">
+    <div class="lp">
+      <div class="spinner"></div>
+      <div class="lt">Building Your Business Plan…</div>
+      <div class="ls">
+        <div class="ls-item" id="ls1">📊 Analyzing market opportunity...</div>
+        <div class="ls-item" id="ls2">🎯 Profiling your target audience...</div>
+        <div class="ls-item" id="ls3">💰 Modeling revenue & financials...</div>
+        <div class="ls-item" id="ls4">🗺️ Crafting your go-to-market strategy...</div>
+        <div class="ls-item" id="ls5">✅ Finalizing & scoring your plan...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: RESULT -->
+  <div class="card" id="step3">
+    <div class="res-head">
+      <div>
+        <div class="res-badge">✦ Business Plan Complete</div>
+        <div class="res-title" id="rname">Your Business</div>
+        <div class="res-tag" id="rtag"></div>
+      </div>
+      <div class="score-ring">
+        <div class="score-n" id="vscore">—</div>
+        <div class="score-l">Viability</div>
+      </div>
+    </div>
+    <div class="tabs" id="plan-tabs"></div>
+    <div id="plan-sections"></div>
+    <div class="abar">
+      <button class="btn btn-p" onclick="copyPlan()">📋 Copy Full Plan</button>
+      <button class="btn btn-s" onclick="downloadPlan()">⬇️ Download .txt</button>
+      <button class="btn btn-s" onclick="startOver()">🔄 New Plan</button>
+    </div>
+    <div class="err" id="err3"></div>
+  </div>
+
+</div>
+
+<footer>Powered by <span>PlanForge AI</span> · Built on Claude · 100% Free to Use</footer>
+
+<script>
+let planStyle = 'investor';
+let fullPlanText = '';
+let planBusinessName = 'business-plan';
+
+function toggleChip(el){ el.classList.toggle('sel'); }
+function selectStyle(s, el){
+  planStyle = s;
+  document.querySelectorAll('.chip[id^="sty-"]').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function setStep(active){
+  for(let i=1;i<=3;i++){
+    const si=document.getElementById('si'+i);
+    si.classList.remove('active','done');
+    if(i<active) si.classList.add('done');
+    else if(i===active) si.classList.add('active');
+  }
+  for(let i=1;i<=2;i++){
+    document.getElementById('sline'+i).classList.toggle('done', i<active);
+  }
+}
+function showCard(id){
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goStep1(){ showCard('step1'); setStep(1); }
+function goStep2(){
+  const v=document.getElementById('idea').value.trim();
+  const e=document.getElementById('err1');
+  if(!v){e.style.display='block';return;}
+  e.style.display='none';
+  showCard('step2'); setStep(2);
+}
+
+function getGoals(){
+  return [...document.querySelectorAll('#goals-chips .chip.sel')].map(c=>c.textContent).join(', ');
+}
+
+async function generatePlan(){
+  const idea        = document.getElementById('idea').value.trim();
+  const industry    = document.getElementById('industry').value;
+  const bmodel      = document.getElementById('bmodel').value;
+  const audience    = document.getElementById('audience').value;
+  const budget      = document.getElementById('budget').value;
+  const timeline    = document.getElementById('timeline').value;
+  const competitors = document.getElementById('competitors').value;
+  const advantage   = document.getElementById('advantage').value;
+  const goals       = getGoals();
+
+  showCard('stepLoading'); setStep(3);
+
+  const lsIds=['ls1','ls2','ls3','ls4','ls5'];
+  let li=0;
+  const iv=setInterval(()=>{ if(li<lsIds.length){ document.getElementById(lsIds[li]).classList.add('lit'); li++; } else clearInterval(iv); },950);
+
+  const styleDesc={
+    investor:'investor-ready, with strong financial projections, market size data (TAM/SAM/SOM), and a compelling pitch narrative',
+    lean:'lean-startup focused, emphasizing rapid validation, minimum viable product, and iterative growth loops',
+    detailed:'comprehensive and thorough, covering every operational and strategic dimension in depth'
+  }[planStyle];
+
+  const prompt=`You are a world-class business strategist, MBA professor, and startup advisor. Create a ${styleDesc} business plan based on:
+
+IDEA: ${idea}
+INDUSTRY: ${industry||'Not specified'}
+BUSINESS MODEL: ${bmodel||'Not specified'}
+TARGET AUDIENCE: ${audience||'General market'}
+BUDGET: ${budget}
+LAUNCH TIMELINE: ${timeline}
+COMPETITORS: ${competitors||'Not specified'}
+UNIQUE ADVANTAGE: ${advantage||'Not specified'}
+YEAR-1 GOALS: ${goals}
+
+Return ONLY a raw JSON object — no markdown fences, no explanation, no preamble. Use this exact structure:
+{
+  "businessName": "Creative, memorable business name",
+  "tagline": "Compelling one-line tagline",
+  "viabilityScore": 84,
+  "sections": {
+    "Executive Summary": "HTML content using <h3>, <p>, <ul><li>, <strong>. Include a <div class='metric-grid'> with 3-4 <div class='metric-box'><div class='metric-val'>$X</div><div class='metric-lbl'>Label</div></div> items showing key targets.",
+    "Market Analysis": "HTML content with TAM/SAM/SOM, market trends, customer personas, and opportunity sizing.",
+    "Product & Service": "HTML content describing the core offering, key features, benefits, differentiation, and product roadmap.",
+    "Go-to-Market Strategy": "HTML content with specific launch channels, partnerships, marketing tactics, growth hacks, and 90-day action steps.",
+    "Financial Projections": "HTML content with pricing model, revenue streams, cost structure, break-even timeline, and 3-year projections. Include a metric-grid with Year 1 revenue target, startup cost, break-even month, and projected margin.",
+    "Operations Plan": "HTML content covering team structure, key hires, technology stack, suppliers, processes, and first-year milestones.",
+    "Risk Analysis": "HTML content listing top 5 risks with likelihood, impact, and mitigation strategies for each.",
+    "Funding & Growth": "HTML content on funding needs, best sources (bootstrapping/angels/VC/grants), use of funds breakdown, and scaling strategy."
+  }
+}`;
+
+  try{
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:4000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    clearInterval(iv);
+    lsIds.forEach(id=>document.getElementById(id).classList.add('lit'));
+    if(!resp.ok) throw new Error('API returned '+resp.status);
+    const data=await resp.json();
+    const raw=data.content.map(b=>b.text||'').join('');
+    let plan;
+    try{
+      const cleaned=raw.replace(/```json|```/g,'').trim();
+      const match=cleaned.match(/\{[\s\S]*\}/);
+      plan=JSON.parse(match?match[0]:cleaned);
+    }catch(e){ throw new Error('Response parsing failed. Please try again.'); }
+    renderPlan(plan);
+    setTimeout(()=>{ showCard('step3'); },500);
+  }catch(err){
+    clearInterval(iv);
+    showCard('step3');
+    const eb=document.getElementById('err3');
+    eb.style.display='block';
+    eb.textContent='⚠️ '+(err.message||'Something went wrong. Please try again.');
+    document.getElementById('rname').textContent='Generation Failed';
+  }
+}
+
+function renderPlan(plan){
+  document.getElementById('rname').textContent = plan.businessName||'Your Business';
+  document.getElementById('rtag').textContent  = plan.tagline||'';
+  document.getElementById('vscore').textContent = (plan.viabilityScore||80)+'%';
+  planBusinessName = (plan.businessName||'business-plan').toLowerCase().replace(/\s+/g,'-');
+
+  const tabsEl=document.getElementById('plan-tabs');
+  const secsEl=document.getElementById('plan-sections');
+  tabsEl.innerHTML=''; secsEl.innerHTML='';
+  fullPlanText=`# ${plan.businessName}\n${plan.tagline}\nViability Score: ${plan.viabilityScore}%\n\n`;
+
+  Object.entries(plan.sections||{}).forEach(([key,content],idx)=>{
+    fullPlanText+=`## ${key}\n${(content||'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim()}\n\n`;
+    const tab=document.createElement('div');
+    tab.className='tab'+(idx===0?' active':'');
+    tab.textContent=key;
+    tab.onclick=()=>switchTab(idx);
+    tabsEl.appendChild(tab);
+    const sec=document.createElement('div');
+    sec.className='psec'+(idx===0?' active':'');
+    sec.innerHTML=`<div class="pc">${content}</div>`;
+    secsEl.appendChild(sec);
+  });
+}
+
+function switchTab(idx){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.querySelectorAll('.psec').forEach((s,i)=>s.classList.toggle('active',i===idx));
+}
+
+function copyPlan(){
+  navigator.clipboard.writeText(fullPlanText).then(()=>{
+    const btn=event.currentTarget;
+    const orig=btn.innerHTML;
+    btn.innerHTML='✅ Copied!';
+    setTimeout(()=>btn.innerHTML=orig,2200);
+  });
+}
+
+function downloadPlan(){
+  const blob=new Blob([fullPlanText],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=planBusinessName+'-business-plan.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function startOver(){
+  document.getElementById('idea').value='';
+  document.getElementById('industry').value='';
+  document.getElementById('bmodel').value='';
+  document.getElementById('audience').value='';
+  document.getElementById('competitors').value='';
+  document.getElementById('advantage').value='';
+  document.getElementById('err3').style.display='none';
+  document.querySelectorAll('#goals-chips .chip').forEach((c,i)=>c.classList.toggle('sel',i===0));
+  selectStyle('investor',document.getElementById('sty-investor'));
+  goStep1();
+}
+</script>
+</body>
+</html>
